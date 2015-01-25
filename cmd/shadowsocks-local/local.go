@@ -17,6 +17,7 @@ import (
 )
 
 var debug ss.DebugLog
+var oldi int
 
 var (
 	errAddrType      = errors.New("socks addr type not supported")
@@ -34,6 +35,7 @@ const (
 
 func init() {
 	rand.Seed(time.Now().Unix())
+	oldi=-1
 }
 
 func handShake(conn net.Conn) (err error) {
@@ -256,9 +258,13 @@ func createServerConn(rawaddr []byte, addr string) (remote *ss.Conn, err error) 
 			skipped = append(skipped, i)
 			continue
 		}
-		remote, err = connectToServer(i, rawaddr, addr)
-		if err == nil {
-			return
+		if oldi != i {
+			remote, err = connectToServer(i, rawaddr, addr)
+
+			if err == nil {
+				oldi = i
+				return
+			}
 		}
 	}
 	// last resort, try skipped servers, not likely to succeed
